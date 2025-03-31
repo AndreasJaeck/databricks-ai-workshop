@@ -92,7 +92,7 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC RETURN
 # MAGIC   SELECT product_id, product_name, full_description
 # MAGIC   FROM VECTOR_SEARCH(
-# MAGIC     index => 'dbdemos_a_jack.chem_manufacturing.products_index',
+# MAGIC     index => '<catalog_name>.chem_manufacturing.products_index',
 # MAGIC     query => product_description,
 # MAGIC     num_results => 2
 # MAGIC   )
@@ -127,7 +127,7 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC RETURN
 # MAGIC   SELECT product_id, full_description, product_name, category, molecular_weight, density, melting_point, boiling_point, chemical_formula, search_score , price_per_unit
 # MAGIC   FROM VECTOR_SEARCH(
-# MAGIC     index => 'dbdemos_a_jack.chem_manufacturing.products_index',
+# MAGIC     index => '<catalog_name>.chem_manufacturing.products_index',
 # MAGIC     query => product_description,
 # MAGIC     num_results => 2
 # MAGIC   )
@@ -172,7 +172,7 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC COMMENT 'Retrieve detailed information about a specific product using its product ID. Returns comprehensive product details including physical and chemical properties, usage recommendations, storage requirements, and pricing information.'
 # MAGIC RETURN
 # MAGIC   SELECT *
-# MAGIC   FROM dbdemos_a_jack.chem_manufacturing.products
+# MAGIC   FROM <catalog_name>.chem_manufacturing.products
 # MAGIC   WHERE product_id = productid;
 
 # COMMAND ----------
@@ -202,7 +202,7 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC COMMENT 'Retrieve all safety protocols, handling procedures, and research notes associated with a specific product ID. Returns detailed safety information including protocols, procedures, and documentation needed for proper handling and use of the chemical product.'
 # MAGIC RETURN
 # MAGIC   SELECT description_id, description_type, product_id, title, content
-# MAGIC   FROM dbdemos_a_jack.chem_manufacturing.descriptions
+# MAGIC   FROM <catalog_name>.chem_manufacturing.descriptions
 # MAGIC   WHERE product_id = productid;
 
 # COMMAND ----------
@@ -232,7 +232,7 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC COMMENT 'Retrieve detailed information about the chemical reactions used in manufacturing a specific product. Returns comprehensive reaction parameters including reaction conditions, catalysts, solvents, environmental requirements, energy usage, and associated hazards.'
 # MAGIC RETURN
 # MAGIC   SELECT reaction_id, reaction_name, reaction_type, catalyst, solvent, temperature, pressure, reaction_time, energy_consumption, hazards
-# MAGIC   FROM dbdemos_a_jack.chem_manufacturing.reactions
+# MAGIC   FROM <catalog_name>.chem_manufacturing.reactions
 # MAGIC   WHERE product_id = productid;
 
 # COMMAND ----------
@@ -267,9 +267,9 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC     SUM(CASE WHEN q.test_result = 'Pass' THEN 1 ELSE 0 END) as passed_tests,
 # MAGIC     SUM(CASE WHEN q.test_result = 'Fail' THEN 1 ELSE 0 END) as failed_tests,
 # MAGIC     ROUND(SUM(CASE WHEN q.test_result = 'Pass' THEN 1 ELSE 0 END) * 100.0 / COUNT(q.test_id), 2) as pass_rate
-# MAGIC   FROM dbdemos_a_jack.chem_manufacturing.quality_control q
-# MAGIC   JOIN dbdemos_a_jack.chem_manufacturing.batches b ON q.batch_id = b.batch_id
-# MAGIC   JOIN dbdemos_a_jack.chem_manufacturing.products p ON b.product_id = p.product_id
+# MAGIC   FROM <catalog_name>.chem_manufacturing.quality_control q
+# MAGIC   JOIN <catalog_name>.chem_manufacturing.batches b ON q.batch_id = b.batch_id
+# MAGIC   JOIN <catalog_name>.chem_manufacturing.products p ON b.product_id = p.product_id
 # MAGIC   WHERE b.product_id = productid
 # MAGIC   GROUP BY p.product_name;
 
@@ -554,7 +554,7 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC     ) AS alternative_option,
 # MAGIC     p.product_id,
 # MAGIC     p.product_name
-# MAGIC   FROM dbdemos_a_jack.chem_manufacturing.products p, input_product ip
+# MAGIC   FROM <catalog_name>.chem_manufacturing.products p, input_product ip
 # MAGIC   WHERE p.product_id != input_product_id
 # MAGIC   LIMIT 3
 
@@ -686,7 +686,7 @@ from databricks.sdk import WorkspaceClient
 llm = ChatOpenAI(
   base_url=f"{WorkspaceClient().config.host}/serving-endpoints/",
   api_key=dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get(),
-  model="databricks-meta-llama-3-70b-instruct"
+  model="databricks-meta-llama-3-3-70b-instruct "
 )
 
 # COMMAND ----------

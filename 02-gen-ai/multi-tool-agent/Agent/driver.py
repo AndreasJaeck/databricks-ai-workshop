@@ -108,7 +108,7 @@ system_prompt = """You are an expert chemistry assistant for a chemical manufact
 tools = []
 
 # You can use UDFs in Unity Catalog as agent tools
-uc_tool_names = ["dbdemos_a_jack.chem_manufacturing.*"]
+uc_tool_names = ["<catalog_name>.chem_manufacturing.*"]
 uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
 tools.extend(uc_toolkit.tools)
 
