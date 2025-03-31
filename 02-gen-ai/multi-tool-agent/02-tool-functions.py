@@ -64,18 +64,20 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # MAGIC %sql
 # MAGIC -- Function to find similar products using vector search
-# MAGIC CREATE OR REPLACE FUNCTION find_similar_products(product_description STRING)
-# MAGIC RETURNS TABLE (product_id STRING, full_description STRING, product_name STRING, category STRING, molecular_weight DOUBLE, density DOUBLE, melting_point DOUBLE, boiling_point DOUBLE, chemical_formula STRING, search_score DOUBLE, price_per_unit DOUBLE)
+# MAGIC CREATE OR REPLACE FUNCTION find_similar_products(
+# MAGIC   product_description STRING COMMENT 'Descriptive text to search for products. Can include product characteristics, use cases, or specific requirements.'
+# MAGIC )
+# MAGIC RETURNS TABLE (product_id STRING, product_name STRING, full_description STRING)
 # MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Find products with similarity search based on description of product name, application areas, storage_conditions. This helps customers find products and alternatives. This query will return details like product_id, full_description, product_name, category, molecular_weight, density, melting_point, boiling_point, chemical_formula, search_score , price_per_unit'
+# MAGIC COMMENT 'Find products with similarity search based on description of product name, application areas, storage_conditions. This helps customers find products and alternatives. Returns product_id, product name, full_description.'
 # MAGIC RETURN
-# MAGIC   SELECT product_id, full_description, product_name, category, molecular_weight, density, melting_point, boiling_point, chemical_formula, search_score , price_per_unit
+# MAGIC   SELECT product_id, product_name, full_description
 # MAGIC   FROM VECTOR_SEARCH(
 # MAGIC     index => 'dbdemos_a_jack.chem_manufacturing.products_index',
 # MAGIC     query => product_description,
 # MAGIC     num_results => 2
 # MAGIC   )
-# MAGIC   ORDER BY search_score DESC 
+# MAGIC   ORDER BY search_score DESC
 
 # COMMAND ----------
 
@@ -97,18 +99,20 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # MAGIC %sql
 # MAGIC -- Function to find safety protocols by description
-# MAGIC CREATE OR REPLACE FUNCTION find_safety_protocols(search_text STRING)
-# MAGIC RETURNS TABLE (description_id STRING, description_type STRING, product_id STRING, title STRING, content STRING, search_score DOUBLE)
+# MAGIC CREATE OR REPLACE FUNCTION find_similar_products(
+# MAGIC   product_description STRING COMMENT 'Descriptive text to search for similar products. Can include product characteristics, use cases, or specific requirements.'
+# MAGIC )
+# MAGIC RETURNS TABLE (product_id STRING, full_description STRING, product_name STRING, category STRING, molecular_weight DOUBLE, density DOUBLE, melting_point DOUBLE, boiling_point DOUBLE, chemical_formula STRING, search_score DOUBLE, price_per_unit DOUBLE)
 # MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Find safety, procedures, research protocools with similarity search for chemicals matching the description. Returns relevant safety information for handling chemicals description_id, description_type, product_id, title, content, search_score.'
+# MAGIC COMMENT 'Find products with similarity search based on description of product name, application areas, storage_conditions. This helps customers find products and alternatives. Returns comprehensive product details including physical properties, chemical composition, and pricing information.'
 # MAGIC RETURN
-# MAGIC   SELECT description_id, description_type, product_id, title, content, search_score
+# MAGIC   SELECT product_id, full_description, product_name, category, molecular_weight, density, melting_point, boiling_point, chemical_formula, search_score , price_per_unit
 # MAGIC   FROM VECTOR_SEARCH(
-# MAGIC     index => 'dbdemos_a_jack.chem_manufacturing.descriptions_index',
-# MAGIC     query => search_text,
+# MAGIC     index => 'dbdemos_a_jack.chem_manufacturing.products_index',
+# MAGIC     query => product_description,
 # MAGIC     num_results => 2
 # MAGIC   )
-# MAGIC   ORDER BY search_score DESC 
+# MAGIC   ORDER BY search_score DESC
 
 # COMMAND ----------
 
@@ -139,12 +143,14 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # MAGIC %sql
 # MAGIC -- Function to get detailed product information
-# MAGIC CREATE OR REPLACE FUNCTION get_product(productid STRING)
+# MAGIC CREATE OR REPLACE FUNCTION get_product(
+# MAGIC   productid STRING COMMENT 'Unique identifier for the product following pattern ^P[0-9]{4}$, e.g., P0001, P0002, etc.'
+# MAGIC )
 # MAGIC RETURNS TABLE (product_id string, product_name string, category string,
-# MAGIC chemical_formula string, molecular_weight double, density double, melting_point double, boiling_point double,description string, application_areas string, storage_conditions string, full_description string, creation_date string, price_per_unit double
+# MAGIC chemical_formula string, molecular_weight double, density double, melting_point double, boiling_point double, description string, application_areas string, storage_conditions string, full_description string, creation_date string, price_per_unit double
 # MAGIC )
 # MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Retrieve detailed information about a product with product id (regex shape: ^P[0-9]{4}$). Returns product_id, product_name, category, chemical_formula, molecular_weight, density, melting_point, boiling_point, description, application_areas, storage_conditions, full_description, creation_date, price_per_unit'
+# MAGIC COMMENT 'Retrieve detailed information about a specific product using its product ID. Returns comprehensive product details including physical and chemical properties, usage recommendations, storage requirements, and pricing information.'
 # MAGIC RETURN
 # MAGIC   SELECT *
 # MAGIC   FROM dbdemos_a_jack.chem_manufacturing.products
@@ -169,10 +175,12 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # MAGIC %sql
 # MAGIC -- Function to get detailed safety protocol information
-# MAGIC CREATE OR REPLACE FUNCTION get_safety_protocols(productid STRING)
+# MAGIC CREATE OR REPLACE FUNCTION get_safety_protocols(
+# MAGIC   productid STRING COMMENT 'Unique identifier for the product following pattern ^P[0-9]{4}$, e.g., P0001, P0002, etc.'
+# MAGIC )
 # MAGIC RETURNS TABLE (description_id STRING, description_type STRING, product_id STRING, title STRING, content STRING)
 # MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Get safety, procedures, research protocools with product id (regex shape: ^P[0-9]{4}$) for chemicals matching the description. Returns relevant safety information for handling chemicals description_id, description_type, product_id, title, content'
+# MAGIC COMMENT 'Retrieve all safety protocols, handling procedures, and research notes associated with a specific product ID. Returns detailed safety information including protocols, procedures, and documentation needed for proper handling and use of the chemical product.'
 # MAGIC RETURN
 # MAGIC   SELECT description_id, description_type, product_id, title, content
 # MAGIC   FROM dbdemos_a_jack.chem_manufacturing.descriptions
@@ -197,10 +205,12 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # MAGIC %sql
 # MAGIC -- Function to get detailed reaction information
-# MAGIC CREATE OR REPLACE FUNCTION get_reaction_details(productid STRING)
+# MAGIC CREATE OR REPLACE FUNCTION get_reaction_details(
+# MAGIC   productid STRING COMMENT 'Unique identifier for the product following pattern ^P[0-9]{4}$, e.g., P0001, P0002, etc.'
+# MAGIC )
 # MAGIC RETURNS TABLE (reaction_id STRING, reaction_name STRING, reaction_type STRING, catalyst STRING, solvent STRING, temperature DOUBLE, pressure DOUBLE, reaction_time DOUBLE, energy_consumption DOUBLE, hazards STRING)
 # MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Retrieve detailed information with product id (regex shape: ^P[0-9]{4}$) about chemical reactions used to produce a specific product. Returns reaction conditions, reaction type, catalyst name, solvent, temperature, pressure, reaction time, energy consumption, hazards.'
+# MAGIC COMMENT 'Retrieve detailed information about the chemical reactions used in manufacturing a specific product. Returns comprehensive reaction parameters including reaction conditions, catalysts, solvents, environmental requirements, energy usage, and associated hazards.'
 # MAGIC RETURN
 # MAGIC   SELECT reaction_id, reaction_name, reaction_type, catalyst, solvent, temperature, pressure, reaction_time, energy_consumption, hazards
 # MAGIC   FROM dbdemos_a_jack.chem_manufacturing.reactions
@@ -225,10 +235,12 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # MAGIC %sql
 # MAGIC -- Function to analyze product quality metrics
-# MAGIC CREATE OR REPLACE FUNCTION analyze_product_quality(productid STRING)
+# MAGIC CREATE OR REPLACE FUNCTION analyze_product_quality(
+# MAGIC   productid STRING COMMENT 'Unique identifier for the product following pattern ^P[0-9]{4}$, e.g., P0001, P0002, etc.'
+# MAGIC )
 # MAGIC RETURNS TABLE (product_name STRING, total_tests INT, passed_tests INT, failed_tests INT, pass_rate DOUBLE)
 # MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Analyze quality metrics for a specific product. Shows test results, pass rates, and common quality issues.'
+# MAGIC COMMENT 'Analyze quality control metrics for a specific product based on historical test data. Returns aggregated quality statistics including test frequency, pass/fail rates, and overall quality score to help assess product reliability and consistency.'
 # MAGIC RETURN
 # MAGIC   SELECT 
 # MAGIC     p.product_name,
@@ -276,10 +288,15 @@ spark.sql(f"USE SCHEMA {schema}")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE FUNCTION convert_chemical_unit(value DOUBLE, from_unit STRING, to_unit STRING, mol_weight DOUBLE)
+# MAGIC CREATE OR REPLACE FUNCTION convert_chemical_unit(
+# MAGIC   value DOUBLE COMMENT 'The numeric value to convert from one unit to another',
+# MAGIC   from_unit STRING COMMENT 'The source unit of measurement (g, kg, mol, L, mL)',
+# MAGIC   to_unit STRING COMMENT 'The target unit of measurement to convert to (g, kg, mol, L, mL)',
+# MAGIC   mol_weight DOUBLE COMMENT 'Molecular weight of the substance in g/mol, required for conversions between mass and moles. Use 0 if not applicable.'
+# MAGIC )
 # MAGIC RETURNS DOUBLE
 # MAGIC LANGUAGE PYTHON
-# MAGIC COMMENT 'Convert between different chemical measurement units (g, kg, mol, L, mL) to units (kg, g, mL, L, mol) usage: convert_chemical_unit(1, "kg", "g", 0) if mol is not provided use 0'
+# MAGIC COMMENT 'Convert between different chemical measurement units including mass (g, kg), volume (L, mL), and molar (mol) units. Molecular weight is required when converting between mass and molar units. Returns the converted value in the specified target unit.'
 # MAGIC AS
 # MAGIC $$
 # MAGIC   unit_conversions = {
@@ -383,10 +400,13 @@ spark.sql(f"USE SCHEMA {schema}")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE FUNCTION get_weather(latitude DOUBLE, longitude DOUBLE)
+# MAGIC CREATE OR REPLACE FUNCTION get_weather(
+# MAGIC   latitude DOUBLE COMMENT 'Geographic latitude coordinate in decimal degrees (between -90 and 90)',
+# MAGIC   longitude DOUBLE COMMENT 'Geographic longitude coordinate in decimal degrees (between -180 and 180)'
+# MAGIC )
 # MAGIC RETURNS STRUCT<temperature_in_celsius DOUBLE, rain_in_mm DOUBLE>
 # MAGIC LANGUAGE PYTHON
-# MAGIC COMMENT 'This function retrieves the current temperature and rain information for a given latitude and longitude using the Open-Meteo API.'
+# MAGIC COMMENT 'Retrieve current weather information for a specific geographic location using latitude and longitude coordinates. Returns temperature in Celsius and precipitation amount in millimeters from the Open-Meteo API or fallback data if the API is unavailable.'
 # MAGIC AS
 # MAGIC $$
 # MAGIC   try:
@@ -419,10 +439,12 @@ spark.sql(f"USE SCHEMA {schema}")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE FUNCTION execute_python_code(python_code STRING)
+# MAGIC CREATE OR REPLACE FUNCTION execute_python_code(
+# MAGIC   python_code STRING COMMENT 'Valid Python code as a string to be executed. The code should end with a return statement to provide output. Code can include function definitions, calculations, and standard library imports.'
+# MAGIC )
 # MAGIC RETURNS STRING
 # MAGIC LANGUAGE PYTHON
-# MAGIC COMMENT "Run python code. The code should end with a return statement and this function will return it as a string. Only send valid python to this function. Here is an exampe of python code input: 'def square_function(number):\\n  return number*number\\n\\nreturn square_function(3)'"
+# MAGIC COMMENT 'Execute arbitrary Python code and return the result as a string. Suitable for custom calculations, data transformations, and other Python-based operations. The code must include a return statement at the end to produce output.'
 # MAGIC AS
 # MAGIC $$
 # MAGIC     import traceback
@@ -445,8 +467,8 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC     except Exception as ex:
 # MAGIC         return traceback.format_exc()
 # MAGIC $$;
-# MAGIC -- let's test our function:
 # MAGIC
+# MAGIC -- let's test our function:
 # MAGIC SELECT execute_python_code("return 'Hello! '* 3") as result;
 
 # COMMAND ----------
@@ -470,10 +492,23 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # MAGIC %sql
 # MAGIC -- Function to recommend product alternatives
-# MAGIC CREATE OR REPLACE FUNCTION compare_prod(input_product_name STRING, input_reason STRING, input_product_id STRING, input_chemical_formula STRING, input_molecular_weight DOUBLE, input_density DOUBLE, input_melting_point DOUBLE, input_boiling_point DOUBLE, input_application_areas STRING, input_storage_conditions STRING, input_description STRING, input_price_per_unit DOUBLE)
+# MAGIC CREATE OR REPLACE FUNCTION compare_prod(
+# MAGIC   input_product_name STRING COMMENT 'Name of the product the customer is currently using or considering',
+# MAGIC   input_reason STRING COMMENT 'Customer\'s reason for seeking an alternative (e.g., cost, performance, availability)',
+# MAGIC   input_product_id STRING COMMENT 'Unique identifier of the current product',
+# MAGIC   input_chemical_formula STRING COMMENT 'Chemical formula of the current product',
+# MAGIC   input_molecular_weight DOUBLE COMMENT 'Molecular weight of the current product in g/mol',
+# MAGIC   input_density DOUBLE COMMENT 'Density of the current product in g/cm³',
+# MAGIC   input_melting_point DOUBLE COMMENT 'Melting point of the current product in °C',
+# MAGIC   input_boiling_point DOUBLE COMMENT 'Boiling point of the current product in °C',
+# MAGIC   input_application_areas STRING COMMENT 'Applications where the current product is used',
+# MAGIC   input_storage_conditions STRING COMMENT 'Storage requirements for the current product',
+# MAGIC   input_description STRING COMMENT 'General description of the current product',
+# MAGIC   input_price_per_unit DOUBLE COMMENT 'Price per unit of the current product in the standard currency'
+# MAGIC )
 # MAGIC RETURNS TABLE
 # MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Recommends alternative products based on the specified reason. usage: recommend_product_alternatives(product_name, reason, product_id, chemical_formula, molecular_weight, density, melting_point, boiling_point, application_areas, storage_conditions, description, price_per_unit)'
+# MAGIC COMMENT 'Compares the specified product with potential alternatives based on customer needs and preferences. Uses AI analysis to recommend suitable alternatives specifically addressing the customer\'s stated reason for seeking an alternative. Returns detailed comparison and recommendation for each alternative product.'
 # MAGIC RETURN SELECT ai_query('databricks-meta-llama-3-70b-instruct',
 # MAGIC     CONCAT(
 # MAGIC       "You are a chemical product specialist. A customer is looking for alternatives to product ", 
@@ -487,42 +522,59 @@ spark.sql(f"USE SCHEMA {schema}")
 
 # COMMAND ----------
 
-df = spark.sql("SELECT * FROM dbdemos_a_jack.chem_manufacturing.products WHERE product_name = 'ProCat-Z91'")
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE FUNCTION alternative_prod(
+# MAGIC   input_product_id STRING COMMENT 'Unique identifier of the product to find alternatives for, following pattern ^P[0-9]{4}$',
+# MAGIC   input_reason STRING COMMENT 'Customer\'s reason for seeking an alternative (e.g., "too expensive", "needs better stability", "requires different storage conditions")'
+# MAGIC )
+# MAGIC RETURNS TABLE (alternative_option STRING, product_id STRING, product_name STRING)
+# MAGIC LANGUAGE SQL
+# MAGIC COMMENT 'Compares the specified product with potential alternatives based on customer needs. Uses AI analysis to recommend suitable alternatives specifically addressing the customer\'s stated reason. Only requires product ID and reason for seeking an alternative.'
+# MAGIC RETURN 
+# MAGIC   WITH input_product AS (
+# MAGIC     SELECT * FROM dbdemos_a_jack.chem_manufacturing.products 
+# MAGIC     WHERE product_id = input_product_id
+# MAGIC   )
+# MAGIC   SELECT 
+# MAGIC     ai_query('databricks-meta-llama-3-70b-instruct',
+# MAGIC       CONCAT(
+# MAGIC         'You are a chemical product specialist. A customer is looking for alternatives to product ', 
+# MAGIC         ip.product_name, ' for the following reason: ', input_reason, 
+# MAGIC         '. The product has the following specifications: ',
+# MAGIC         'Product ID: ', ip.product_id, 
+# MAGIC         ', Chemical Formula: ', ip.chemical_formula, 
+# MAGIC         ', Molecular Weight: ', ip.molecular_weight, 
+# MAGIC         ', Density: ', ip.density,  
+# MAGIC         ', Melting Point: ', ip.melting_point, 
+# MAGIC         ', Boiling Point: ', ip.boiling_point, 
+# MAGIC         ', Application Areas: ', ip.application_areas, 
+# MAGIC         ', Storage Conditions: ', ip.storage_conditions, 
+# MAGIC         ', Description: ', ip.description, 
+# MAGIC         ', Price Per Unit: ', ip.price_per_unit,
+# MAGIC         '. Compare the product with the following potential alternative ONLY on the given reason: ',
+# MAGIC         'Product ID: ', p.product_id, 
+# MAGIC         ', Product Name: ', p.product_name,
+# MAGIC         ', Chemical Formula: ', p.chemical_formula, 
+# MAGIC         ', Molecular Weight: ', p.molecular_weight, 
+# MAGIC         ', Density: ', p.density, 
+# MAGIC         ', Melting Point: ', p.melting_point, 
+# MAGIC         ', Boiling Point: ', p.boiling_point, 
+# MAGIC         ', Application Areas: ', p.application_areas, 
+# MAGIC         ', Storage Conditions: ', p.storage_conditions, 
+# MAGIC         ', Description: ', p.description, 
+# MAGIC         ', Price Per Unit: ', p.price_per_unit
+# MAGIC       )
+# MAGIC     ) AS alternative_option,
+# MAGIC     p.product_id,
+# MAGIC     p.product_name
+# MAGIC   FROM dbdemos_a_jack.chem_manufacturing.products p, input_product ip
+# MAGIC   WHERE p.product_id != input_product_id
+# MAGIC   LIMIT 3
 
-pdf = df.toPandas()
+# COMMAND ----------
 
-input_product_name = pdf['product_name'][0]
-input_reason = "to expensive"
-input_product_id = pdf['product_id'][0]
-input_chemical_formula = pdf['chemical_formula'][0]
-input_molecular_weight = pdf['molecular_weight'][0]
-input_density = pdf['density'][0]
-input_melting_point = pdf['melting_point'][0]
-input_boiling_point = pdf['boiling_point'][0]
-input_application_areas = pdf['application_areas'][0]
-input_storage_conditions = pdf['storage_conditions'][0]
-input_description = pdf['description'][0]
-input_price_per_unit = pdf['price_per_unit'][0]
-
-query = f"""
-SELECT * FROM recommend_product_alternatives(
-    '{input_product_name}', 
-    '{input_reason}', 
-    '{input_product_id}', 
-    '{input_chemical_formula}', 
-    {input_molecular_weight}, 
-    {input_density},
-    {input_melting_point},
-    {input_boiling_point},
-    '{input_application_areas}',
-    '{input_storage_conditions}',
-    '{input_description}',
-    {input_price_per_unit}
-)
-"""
-
-result_df = spark.sql(query)
-display(result_df)
+# MAGIC %sql
+# MAGIC SELECT * FROM recommend_product_alternatives('P0001', 'too expensive')
 
 # COMMAND ----------
 
@@ -657,21 +709,40 @@ from langchain_community.chat_models import ChatDatabricks
 
 def get_prompt(history = [], prompt = None):
     if not prompt:
-            prompt = """You are a helpful chemistry assistant. You are given tools to help you answer questions:
-                        - compute_math: to compute matehmatical expressions
-                        - convert_chemical_unit: conversion tool for chemical units
-                        - execute_python_code: create and run abitrary pyhton code
-                        - get_weather: calling weather api to return temperature
-                        - find_safety_protocols: text similarity search for safety protocols and research notes
-                        - find_similar_products: text similarity search for products. Will return information about products including storage conditions
-                        - get_product: get product information with product id
-                        - get_reaction_details: get reaction details with product id
-                        - get_safety_protocols: get safety protocols with product id
-                        - analyze_product_quality: analyze product quality with product id
-                        - recommend_product_alternatives: compare products based on specified criteria with all other products 
+        prompt = """You are an expert chemistry assistant for a chemical manufacturing company. You have access to specialized tools that help you provide accurate, detailed information about chemical products, safety protocols, and processes.
 
-                        Make sure to use the appropriate tool for each step and provide a coherent response to the user. Don't mention tools to your users. Only answer what the user is asking for. If the question isn't related to the tools or style/clothe, say you're sorry but can't answer.
-                """
+        AVAILABLE TOOLS:
+        
+        INFORMATION RETRIEVAL:
+        - get_product: Retrieve comprehensive details about a specific chemical product using its product ID (format: P####)
+        - get_safety_protocols: Access safety guidelines, handling procedures, and precautions for a specific product ID
+        - get_reaction_details: Obtain manufacturing process information, reaction conditions, and hazards for a specific product ID
+        - analyze_product_quality: Evaluate quality metrics, test results, and reliability statistics for a specific product ID
+        
+        SEARCH CAPABILITIES:
+        - find_similar_products: Discover chemical products similar to a description. Use when users need product recommendations or alternatives
+        - find_safety_protocols: Search for safety protocols, handling procedures, or research notes based on description or chemical properties
+        - alternative_prod: Find alternative products when given a product ID and specific reason (cost, performance, storage, etc.)
+        
+        CALCULATION AND CONVERSION:
+        - compute_math: Solve mathematical expressions and equations with high precision
+        - convert_chemical_unit: Convert between various chemical units (g, kg, mol, L, mL) with molecular weight support for mass/mole conversions
+        - execute_python_code: Run custom Python code for specialized calculations or data processing tasks
+        
+        ENVIRONMENTAL DATA:
+        - get_weather: Retrieve current temperature and precipitation data for a specified location using coordinates
+        
+        RESPONSE GUIDELINES:
+        1. Analyze the user query carefully to determine which tool(s) are most appropriate
+        2. For product inquiries, first check if a product ID (do not use product name as id) is provided; if not, use search tools
+        3. When uncertainty exists between multiple product options, present the most relevant choice
+        4. Always provide complete, well-structured responses with clear explanations
+        5. For numerical answers, include units and appropriate precision
+        6. For safety-related questions, prioritize accurate safety information
+        7. Seamlessly integrate information from multiple tools when necessary
+        
+        Never mention the tools by name to users. Present information as if it comes from your own knowledge. If a question is completely unrelated to chemistry, chemical manufacturing, or the available tools, politely inform the user that you can only assist with chemistry-related inquiries.
+        """
     return ChatPromptTemplate.from_messages([
             ("system", prompt),
             ("human", "{input}"),
