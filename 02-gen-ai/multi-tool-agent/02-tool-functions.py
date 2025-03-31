@@ -21,16 +21,35 @@
 
 # COMMAND ----------
 
+# MAGIC %md 
+# MAGIC
+# MAGIC ### Use on BASF Workspace or Databricks managed Workspace
+# MAGIC
+
+# COMMAND ----------
+
+is_basf_workspace = True
+schema = 'chem_manufacturing'
+
+# COMMAND ----------
+
 from databricks.sdk import WorkspaceClient
 
 ws = WorkspaceClient()
 current_user = ws.current_user.me().user_name
-first_name, last_name = current_user.split('@')[0].split('.')
-formatted_name = f"{first_name[0]}_{last_name}"
+
+if is_basf_workspace == True:
+  first_name = current_user.split('@')[0]
+  formatted_name = first_name
+
+else:
+  first_name, last_name = current_user.split('@')[0].split('.')
+  formatted_name = f"{first_name[0]}_{last_name}"
 
 catalog = f'dbdemos_{formatted_name}'
-schema = 'chem_manufacturing'
 print(f"Catalog name: {catalog}")
+
+
 
 # COMMAND ----------
 
@@ -491,38 +510,6 @@ spark.sql(f"USE SCHEMA {schema}")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Function to recommend product alternatives
-# MAGIC CREATE OR REPLACE FUNCTION compare_prod(
-# MAGIC   input_product_name STRING COMMENT 'Name of the product the customer is currently using or considering',
-# MAGIC   input_reason STRING COMMENT 'Customer\'s reason for seeking an alternative (e.g., cost, performance, availability)',
-# MAGIC   input_product_id STRING COMMENT 'Unique identifier of the current product',
-# MAGIC   input_chemical_formula STRING COMMENT 'Chemical formula of the current product',
-# MAGIC   input_molecular_weight DOUBLE COMMENT 'Molecular weight of the current product in g/mol',
-# MAGIC   input_density DOUBLE COMMENT 'Density of the current product in g/cm³',
-# MAGIC   input_melting_point DOUBLE COMMENT 'Melting point of the current product in °C',
-# MAGIC   input_boiling_point DOUBLE COMMENT 'Boiling point of the current product in °C',
-# MAGIC   input_application_areas STRING COMMENT 'Applications where the current product is used',
-# MAGIC   input_storage_conditions STRING COMMENT 'Storage requirements for the current product',
-# MAGIC   input_description STRING COMMENT 'General description of the current product',
-# MAGIC   input_price_per_unit DOUBLE COMMENT 'Price per unit of the current product in the standard currency'
-# MAGIC )
-# MAGIC RETURNS TABLE
-# MAGIC LANGUAGE SQL
-# MAGIC COMMENT 'Compares the specified product with potential alternatives based on customer needs and preferences. Uses AI analysis to recommend suitable alternatives specifically addressing the customer\'s stated reason for seeking an alternative. Returns detailed comparison and recommendation for each alternative product.'
-# MAGIC RETURN SELECT ai_query('databricks-meta-llama-3-70b-instruct',
-# MAGIC     CONCAT(
-# MAGIC       "You are a chemical product specialist. A customer is looking for alternatives to product ", 
-# MAGIC       input_product_name, " for the following reason: ", input_reason, "the product has the following specifications: ",
-# MAGIC       input_product_id, " ", input_chemical_formula, " ", input_molecular_weight, " ", input_density, " ",  input_melting_point, " ", input_boiling_point, " ", input_application_areas, " ", input_storage_conditions, " ", input_description, " ", input_price_per_unit,
-# MAGIC       "Compare the product with the following product ONLY on the given reason:", product_id, " ", product_name," ", chemical_formula, " ", molecular_weight, " ", density, " ",  melting_point, " ", boiling_point, " ", application_areas, " ", storage_conditions, " ", description, " ", price_per_unit
-# MAGIC     ) 
-# MAGIC   ) AS alternative_option
-# MAGIC   FROM dbdemos_a_jack.chem_manufacturing.products
-# MAGIC   LIMIT 2
-
-# COMMAND ----------
-
-# MAGIC %sql
 # MAGIC CREATE OR REPLACE FUNCTION alternative_prod(
 # MAGIC   input_product_id STRING COMMENT 'Unique identifier of the product to find alternatives for, following pattern ^P[0-9]{4}$',
 # MAGIC   input_reason STRING COMMENT 'Customer\'s reason for seeking an alternative (e.g., "too expensive", "needs better stability", "requires different storage conditions")'
@@ -536,7 +523,7 @@ spark.sql(f"USE SCHEMA {schema}")
 # MAGIC     WHERE product_id = input_product_id
 # MAGIC   )
 # MAGIC   SELECT 
-# MAGIC     ai_query('databricks-meta-llama-3-70b-instruct',
+# MAGIC     ai_query('databricks-meta-llama-3-3-70b-instruct',
 # MAGIC       CONCAT(
 # MAGIC         'You are a chemical product specialist. A customer is looking for alternatives to product ', 
 # MAGIC         ip.product_name, ' for the following reason: ', input_reason, 
